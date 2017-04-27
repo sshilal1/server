@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Hello world</title></head>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script>
+    /*var socket = io();
+	//socket.on('message', function(data){document.write(data)});
+	//socket.on('testerEvent', function(data){document.write(data.description)});
+	*/
+	var socket = io();
+	var player = new Object;
+	socket.on('initClient', function(data){
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data.description;
+		player.id = data.clients;
+	});
+
+	socket.on('roomList', function(data){
+		$("#rooms").html('');
+		console.log(data.roomList.rooms[0]);
+		for (i=0;i<data.roomList.rooms.length;i++) {
+			var str = '<tr><td>Room ' + data.roomList.rooms[i].num + '</td><td>Host ' + data.roomList.rooms[i].host + '</td></tr>'
+			console.log(str);
+			$("#rooms").append(str);
+		}
+	})
+
+	function createPlayer() {
+		player.name = document.getElementById('name').value;
+	}
+
+	function test() {
+		socket.emit('clientTestEvent', 'We are sending an event from the client!');
+	}
+
+	function addRoom() {
+		socket.emit('clientaddRoom', player);
+	}
+
+  </script>
+ <body>
+  	<div id="hello">Hello world</div>
+  	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
+  	<button onclick="createPlayer();">Create Player</button>
+  	<div id="sample"></div>
+	<button onclick="test();" >Send Message</button>
+	<button onclick="addRoom();">Add Room</button>
+	<table id="rooms">Rooms</table>
+</body>
+</html>
