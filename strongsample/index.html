@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Hello world</title></head>
+	<script src="/socket.io/socket.io.js"></script>
+  <script>
+    /*var socket = io();
+	//socket.on('message', function(data){document.write(data)});
+	//socket.on('testerEvent', function(data){document.write(data.description)});
+	//FOR BROADCASTALL socket.on('broadcast',function(data){
+	socket.on('newclientconnect', function(data) {
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data.description;
+	})
+	*/
+	// ##################
+	// Using Namespaces instead of default socketio
+	// var socket = io('/my-namespace');
+	var socket = io();
+	socket.on('hi',function(data){
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data;
+	});
+	socket.on('connectToRoom',function(data){
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data;
+	});
+
+	function test() {
+		socket.emit('clientTestEvent', 'We are sending an event from the client!');
+	}
+  </script>
+ <body>
+  	<div id="hello">Hello world</div>
+  	<div id="sample"></div>
+	<button onclick="test();" >Send Message</button>
+</body>
+</html>
