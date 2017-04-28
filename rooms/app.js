@@ -35,14 +35,11 @@ io.on('connection', function(socket){
 
   socket.on('clientaddRoom', function(data) {
     console.log(data.name + ' created a room');
-    var newRoom = new Room(data.name,roomno);
-    
+    var newRoom = new Room(data,roomno);   
 		// make the host join room
 		socket.join("room-"+roomno);
-		
 		// add new room to roomList object
 		roomList.rooms.push(newRoom);
-		
 		// push the new room list to all clients
     io.sockets.emit('roomList', { roomList });
 		roomno++;
@@ -51,6 +48,9 @@ io.on('connection', function(socket){
 	socket.on('clientjoinRoom', function(data) {
 		console.log(data);
 		console.log(data.player.name + ' wants to join room ' + data.roomno);
+		roomList.rooms[data.roomno].members.push(data.player);
+		socket.join("room-"+roomno);
+		io.sockets.emit('roomList', { roomList });
 	});
 
   // ### ROOMS
