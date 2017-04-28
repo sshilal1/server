@@ -36,9 +36,22 @@ io.on('connection', function(socket){
   socket.on('clientaddRoom', function(data) {
     console.log(data.name + ' created a room');
     var newRoom = new Room(data.name,roomno);
-    roomList.rooms.push(newRoom);
+    
+		// make the host join room
+		socket.join("room-"+roomno);
+		
+		// add new room to roomList object
+		roomList.rooms.push(newRoom);
+		
+		// push the new room list to all clients
     io.sockets.emit('roomList', { roomList });
+		roomno++;
   });
+	
+	socket.on('clientjoinRoom', function(data) {
+		console.log(data);
+		console.log(data.player.name + ' wants to join room ' + data.roomno);
+	});
 
   // ### ROOMS
   //Increase roomno 2 clients are present in a room.
