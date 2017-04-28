@@ -24,9 +24,8 @@
 	}
 	
 	socket.on('initClient', function(data){
-		document.getElementById("sample").innerHTML = '';
-		document.getElementById("sample").innerHTML = data.description;
-		player.id = data.clients;
+		player.id = data.clientId;
+		console.log('you are client ' + data.clientId);
 	});
 
 	socket.on('roomList', function(data){
@@ -56,10 +55,9 @@
 
   </script>
  <body>
-  	<div id="hello">Hello world</div>
-  	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
-  	<button onclick="createPlayer();">Create Player</button>
-  	<div id="sample"></div>
+	<div id="hello">Hello world</div>
+	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
+	<button onclick="createPlayer();">Create Player</button>
 	<button onclick="test();" >Send Message</button>
 	<button onclick="addRoom();">Add Room</button>
 	<table id="rooms">Rooms</table>

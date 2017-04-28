@@ -19,17 +19,16 @@ roomList.rooms = new Array();
 // Whenever someone connects this gets executed
 // Using defualt namespace
 io.on('connection', function(socket){
-  console.log('A user connected');
-  var newUser = new Object;
-  newUser.id = clients;
-  newUser.description = 'You are client number ' + clients;
-  socket.emit('initClient', { newUser });
+  console.log('A user: '+ socket.client.id +' connected');
+  var clientId = socket.client.id;
+  socket.emit('initClient', { clientId });
   io.sockets.emit('roomList', { roomList });
   clients++;
 	
   //Whenever someone disconnects this piece of code executed
   socket.on('disconnect', function () {
     console.log('A user disconnected');
+		console.log(socket.client.id);
     clients--;
   });
 
