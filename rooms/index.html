@@ -1,31 +1,42 @@
 <!DOCTYPE html>
 <html>
-  <head><title>Hello world</title></head>
+  <head>
+		<title>Hello world</title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+	</head>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script>
-    /*var socket = io();
-	//socket.on('message', function(data){document.write(data)});
-	//socket.on('testerEvent', function(data){document.write(data.description)});
-	*/
+
 	var socket = io();
 	var player = new Object;
+	var rooms = new Array();
+	
+	function showRooms() {
+		for (i=0;i<rooms.length;i++) {
+			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].num + 
+			'|</td><td>Host: ' + JSON.stringify(rooms[i].host) + 
+			'|</td><td>Members: ' + JSON.stringify(rooms[i].members) + 
+			'|</td><td><button onclick="joinRoom('+ rooms[i].num +');">Join Room</button></td></tr>';
+			console.log(str);
+			$("#rooms").append(str);
+		}
+	}
+	
 	socket.on('initClient', function(data){
-		document.getElementById("sample").innerHTML = '';
-		document.getElementById("sample").innerHTML = data.description;
-		player.id = data.clients;
+		player.id = data.clientId;
+		console.log('you are client ' + data.clientId);
 	});
 
 	socket.on('roomList', function(data){
 		$("#rooms").html('');
-		console.log(data.roomList.rooms[0]);
+		rooms = [];
 		for (i=0;i<data.roomList.rooms.length;i++) {
-			var str = '<tr><td>Room ' + data.roomList.rooms[i].num + '</td><td>Host ' + data.roomList.rooms[i].host + '</td></tr>'
-			console.log(str);
-			$("#rooms").append(str);
+			rooms.push(data.roomList.rooms[i]);
 		}
+		showRooms();
 	})
-
+	
 	function createPlayer() {
 		player.name = document.getElementById('name').value;
 	}
@@ -37,13 +48,16 @@
 	function addRoom() {
 		socket.emit('clientaddRoom', player);
 	}
+	
+	function joinRoom(roomno) {
+		socket.emit('clientjoinRoom', {player,roomno} );
+	}
 
   </script>
  <body>
-  	<div id="hello">Hello world</div>
-  	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
-  	<button onclick="createPlayer();">Create Player</button>
-  	<div id="sample"></div>
+	<div id="hello">Hello world</div>
+	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
+	<button onclick="createPlayer();">Create Player</button>
 	<button onclick="test();" >Send Message</button>
 	<button onclick="addRoom();">Add Room</button>
 	<table id="rooms">Rooms</table>

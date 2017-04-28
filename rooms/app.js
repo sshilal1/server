@@ -19,26 +19,38 @@ roomList.rooms = new Array();
 // Whenever someone connects this gets executed
 // Using defualt namespace
 io.on('connection', function(socket){
-  console.log('A user connected');
-  var newUser = new Object;
-  newUser.id = clients;
-  newUser.description = 'You are client number ' + clients;
-  socket.emit('initClient', { newUser });
+  console.log('A user: '+ socket.client.id +' connected');
+  var clientId = socket.client.id;
+  socket.emit('initClient', { clientId });
   io.sockets.emit('roomList', { roomList });
   clients++;
 	
   //Whenever someone disconnects this piece of code executed
   socket.on('disconnect', function () {
     console.log('A user disconnected');
+		console.log(socket.client.id);
     clients--;
   });
 
   socket.on('clientaddRoom', function(data) {
     console.log(data.name + ' created a room');
-    var newRoom = new Room(data.name,roomno);
-    roomList.rooms.push(newRoom);
+    var newRoom = new Room(data,roomno);   
+		// make the host join room
+		socket.join("room-"+roomno);
+		// add new room to roomList object
+		roomList.rooms.push(newRoom);
+		// push the new room list to all clients
     io.sockets.emit('roomList', { roomList });
+		roomno++;
   });
+	
+	socket.on('clientjoinRoom', function(data) {
+		console.log(data);
+		console.log(data.player.name + ' wants to join room ' + data.roomno);
+		roomList.rooms[data.roomno].members.push(data.player);
+		socket.join("room-"+roomno);
+		io.sockets.emit('roomList', { roomList });
+	});
 
   // ### ROOMS
   //Increase roomno 2 clients are present in a room.
