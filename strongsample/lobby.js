@@ -6,6 +6,8 @@ var games = new Array();
 var Game = function(host,path) {
     this.host = host;
     this.path = path;
+		this.members = new Array();
+		this.members.push(host);
 };
 
 app.get('/', function(req, res){
@@ -21,16 +23,29 @@ io.on('connection', function(socket){
 		createNewGame(data);
 	});
 	
+	socket.on('clientJoinGame', function(data) {
+		for (i=0;i<games.length;i++) {
+			console.log("games[i].host:" + games[i].host);
+			console.log("data.gameid:" + data.gameid);
+			if (games[i].host == data.gameid) {
+				games[i].members.push(data.myId);
+			}
+		}
+		io.sockets.emit('gamesList', { games });
+	});
+	
 });
 
 function createNewGame(gameinfo) {
+	
+	console.log('created a new game: ' + gameinfo.id);
+	
 	var newNspPath = '/game' + gameinfo.id;
 	games.push(new Game(gameinfo.id,newNspPath));
 	io.sockets.emit('gamesList', { games });
 	
 	var nsp = io.of(newNspPath);
 	nsp.on('connection', function(game){
-		console.log('created a new game: ' + gameinfo.id);
 		nsp.emit('hi', 'Hello, and welcome to game ' + gameinfo.id);
 		io.sockets.emit('gamesList', { games });
 	});

@@ -36,6 +36,7 @@
 	}
 	
 	function joinGame(gameid) {
+		socket.emit('clientJoinGame', {myId,gameid});
 		var gameToJoin = '/game'+ gameid;
 		socket = io(gameToJoin);
 	  socket.on('hi',function(data){
