@@ -2,36 +2,64 @@
 <html>
   <head><title>Hello world</title></head>
 	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
   <script>
-    /*var socket = io();
-	//socket.on('message', function(data){document.write(data)});
-	//socket.on('testerEvent', function(data){document.write(data.description)});
-	//FOR BROADCASTALL socket.on('broadcast',function(data){
-	socket.on('newclientconnect', function(data) {
-		document.getElementById("sample").innerHTML = '';
-		document.getElementById("sample").innerHTML = data.description;
-	})
-	*/
-	// ##################
-	// Using Namespaces instead of default socketio
-	// var socket = io('/my-namespace');
+	
+	var games = new Array();
+	var myId = Math.floor(Math.random() * 100) + 1;
+	console.log("myId="+myId);
+	
 	var socket = io();
-	socket.on('hi',function(data){
-		document.getElementById("sample").innerHTML = '';
-		document.getElementById("sample").innerHTML = data;
+	socket.on('gamesList', function(data) {
+		games = [];
+		console.log(data);
+		for (i=0;i<data.games.length;i++) {
+			games.push(data.games[i]);
+		}
+		showGames();
 	});
+
 	socket.on('connectToRoom',function(data){
 		document.getElementById("sample").innerHTML = '';
 		document.getElementById("sample").innerHTML = data;
 	});
-
-	function test() {
-		socket.emit('clientTestEvent', 'We are sending an event from the client!');
+	
+	function createGame() {
+		socket.emit('clientCreateGame', {id:myId});
+		
+		var currentGame = '/game'+ myId;
+		socket = io(currentGame);
+	  socket.on('hi',function(data){
+			document.getElementById("sample").innerHTML = '';
+			document.getElementById("sample").innerHTML = data;
+	  });
 	}
+	
+	function joinGame(gameid) {
+		var gameToJoin = '/game'+ gameid;
+		socket = io(gameToJoin);
+	  socket.on('hi',function(data){
+			document.getElementById("sample").innerHTML = '';
+			document.getElementById("sample").innerHTML = data;
+	  });
+	}
+	
+	function showGames() {
+		$("#games").html('');
+		for (i=0;i<games.length;i++) {
+			var str = '<tr style="outline: thin solid"><td>Game ' + games[i].host + 
+			'|</td><td>Host: ' + JSON.stringify(games[i].host) + 
+			'|</td><td><button onclick="joinGame('+ games[i].host +');">Join Game</button></td></tr>';
+			console.log(str);
+			$("#games").append(str);
+		}
+	}
+
   </script>
  <body>
   	<div id="hello">Hello world</div>
   	<div id="sample"></div>
-	<button onclick="test();" >Send Message</button>
+	<button onclick="createGame();">Make Game</button>
+	<table id="games">Rooms</table>
 </body>
 </html>
