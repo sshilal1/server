@@ -14,10 +14,15 @@
 	
 	function showRooms() {
 		for (i=0;i<rooms.length;i++) {
-			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].num + 
-			'|</td><td>Host: ' + JSON.stringify(rooms[i].host) + 
-			'|</td><td>Members: ' + JSON.stringify(rooms[i].members) + 
-			'|</td><td><button onclick="joinRoom('+ rooms[i].num +');">Join Room</button></td></tr>';
+			var memberNames = [];
+			for (player of rooms[i].members) {
+				memberNames += player.name;
+				console.log(player);
+			}
+			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
+			'|</td><td>Host: ' + JSON.stringify(rooms[i].hostname) + 
+			'|</td><td>Members: ' + memberNames + 
+			'|</td><td><button onclick="joinRoom('+ rooms[i].number +');">Join Room</button></td></tr>';
 			console.log(str);
 			$("#rooms").append(str);
 		}
@@ -28,11 +33,11 @@
 		console.log('you are client ' + data.clientId);
 	});
 
-	socket.on('roomList', function(data){
+	socket.on('roomUpdate', function(data){
 		$("#rooms").html('');
 		rooms = [];
-		for (i=0;i<data.roomList.rooms.length;i++) {
-			rooms.push(data.roomList.rooms[i]);
+		for (i=0;i<data.rooms.length;i++) {
+			rooms.push(data.rooms[i]);
 		}
 		showRooms();
 	})
@@ -47,10 +52,12 @@
 
 	function addRoom() {
 		socket.emit('clientaddRoom', player);
+		// when i add room, player only has id=clinetid and name=nameFromCreatePLayer
 	}
 	
-	function joinRoom(roomno) {
-		socket.emit('clientjoinRoom', {player,roomno} );
+	function joinRoom(roomid) {
+		console.log(player,roomid);
+		socket.emit('clientjoinRoom', {player,roomid} );
 	}
 
   </script>
