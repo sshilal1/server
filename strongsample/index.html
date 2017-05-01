@@ -25,9 +25,10 @@
 	});
 	
 	function createGame() {
-		socket.emit('clientCreateGame', {id:myId});
+
+		var currentGame = '/game'+ (games.length+1);
 		
-		var currentGame = '/game'+ myId;
+		socket.emit('clientCreateGame', {id:myId});
 		socket = io(currentGame);
 	  socket.on('hi',function(data){
 			document.getElementById("sample").innerHTML = '';
@@ -45,12 +46,24 @@
 	  });
 	}
 	
+	function leaveGame(gameid) {
+		socket = io('/');
+		socket.emit('clientLeaveGame', {myId,gameid});
+	}
+	
 	function showGames() {
 		$("#games").html('');
 		for (i=0;i<games.length;i++) {
-			var str = '<tr style="outline: thin solid"><td>Game ' + games[i].host + 
+			var str = '<tr style="outline: thin solid"><td>Game ' + games[i].id + 
 			'|</td><td>Host: ' + JSON.stringify(games[i].host) + 
-			'|</td><td><button onclick="joinGame('+ games[i].host +');">Join Game</button></td></tr>';
+			'|</td><td>Members: ' + JSON.stringify(games[i].members);
+			
+			if (games[i].members.includes(myId)) {
+				str += '|</td><td><button onclick="leaveGame('+ games[i].id +');">Leave Game</button></td></tr>';
+			}
+			else {
+				str += '|</td><td><button onclick="joinGame('+ games[i].id +');">Join Game</button></td></tr>';
+			}	
 			console.log(str);
 			$("#games").append(str);
 		}
