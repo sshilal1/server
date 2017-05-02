@@ -15,7 +15,7 @@
 	function showRooms() {
 		for (i=0;i<rooms.length;i++) {
 			var memberNames = [];
-			for (person of rooms[i].members) {
+			for (person in rooms[i].members) {
 				memberNames += person.name + "|";
 			}
 			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
@@ -43,11 +43,15 @@
 	socket.on('roomUpdate', function(data){
 		$("#rooms").html('');
 		rooms = [];
-		for (i=0;i<data.rooms.length;i++) {
-			rooms.push(data.rooms[i]);
+		for (room in data.rooms) {
+			rooms.push(room);
 		}
 		showRooms();
-	})
+	});
+	
+	socket.on('pingRooms', function(data) {
+		console.log(data);
+	});
 
 	function addRoom() {
 		socket.emit('clientaddRoom', player);

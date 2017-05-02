@@ -1,6 +1,9 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var roomno = 1;
+// TODO/
+var rooms = new Object();
 
 app.get('/', function(req, res){
 	res.sendfile('index.html');
@@ -20,17 +23,20 @@ function randomString(length) {
 
 function printCurrentRooms() {
 	console.log("--Current Rooms--");
-	for (room of rooms){
-		console.log(room.number + ":Host:" + room.hostname);
+	for (room in rooms){
+		console.log(rooms[room].number + ":Host:" + rooms[room].hostname);
 		var str = '  Members:';
-		for(m=0;m<room.members.length;m++) {
-			str += ' ' + room.members[m].name;
+		for(m=0;m<rooms[room].members.length;m++) {
+			str += ' ' + rooms[room].members[m].name;
 		}
 		console.log(str);
+		io.sockets.in("room-"+room.number).emit('pingRooms', "You are in room no. "+room.number);
 	}
 }
 
+// TODO/
 function s_leaveRoom(clientId) {
+	/*
 	for (i=0;i<rooms.length;i++) {
 		for (j=0;j<rooms[i].members.length;j++) {
 			if (rooms[i].members[j].id == clientId) {
@@ -49,10 +55,27 @@ function s_leaveRoom(clientId) {
 			}
 		}
 	}
+	*/
+	for (room in rooms) {
+		for (j=0;j<room.members.length;j++) {
+			if (room.members[j].id == clientId) {
+				room.members.splice(j, 1);
+			}
+		}
+		if (room.hostid == clientId) {
+			if (room.members.length < 1) {
+				delete rooms[room];
+				roomno--;
+			}
+			else {
+				room.hostname = room.members[0].name;
+				room.hostid = room.members[0].id;
+			}
+		}
+	}
 }
 
-var roomno = 1;
-var rooms = new Array();
+
 
 io.on('connection', function(socket){
 	var clientId = socket.client.id;
@@ -60,6 +83,7 @@ io.on('connection', function(socket){
 	console.log('A user: '+ socket.client.id +' connected, name=' + clientName);
 	
 	socket.emit('initClient', { clientId,clientName });
+	// TODO on client
 	io.sockets.emit('roomUpdate', { rooms });
 	
   //Whenever someone disconnects this piece of code executed
@@ -76,9 +100,9 @@ io.on('connection', function(socket){
 		// create the new room
 		console.log(data.name + ' created room ' + roomno);
 		var newRoom = new Room(roomno,data);
-		
+		// TODO/
 		// update local rooms array
-		rooms.push(newRoom);
+		rooms["room-"+roomno] = newRoom;
 		
 		// join the room
 		socket.join("room-" + roomno);
@@ -91,7 +115,8 @@ io.on('connection', function(socket){
 	socket.on('clientjoinRoom', function(data) {
 		// join the room array
 		console.log(data.player.name + ' wants to join room ' + data.roomid);
-		rooms[data.roomid-1].members.push(data.player);
+		// TODO/
+		rooms["room-"+data.roomid].members.push(data.player);
 		
 		// join the actual room
 		socket.join("room-"+data.roomid);
