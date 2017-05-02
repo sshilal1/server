@@ -15,13 +15,19 @@
 	function showRooms() {
 		for (i=0;i<rooms.length;i++) {
 			var memberNames = [];
-			for (player of rooms[i].members) {
-				memberNames += player.name;
+			for (person of rooms[i].members) {
+				memberNames += person.name + "|";
 			}
 			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
 			'|</td><td>Host: ' + JSON.stringify(rooms[i].hostname) + 
-			'|</td><td>Members: ' + memberNames + 
-			'|</td><td><button onclick="joinRoom('+ rooms[i].number +');">Join Room</button></td></tr>';
+			'|</td><td>Members: ' + memberNames;
+
+			if (JSON.stringify(rooms[i].members).includes(player.name)) {
+				str += '|</td><td><button onclick="leaveRoom('+ rooms[i].number +');">Leave Game</button></td></tr>';
+			}
+			else {
+				str += '|</td><td><button onclick="joinRoom('+ rooms[i].number +');">Join Game</button></td></tr>';
+			}
 			console.log(str);
 			$("#rooms").append(str);
 		}
@@ -29,7 +35,9 @@
 	
 	socket.on('initClient', function(data){
 		player.id = data.clientId;
-		console.log('you are client ' + data.clientId);
+		player.name = data.clientName;
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data.clientName + ': you are client ' + data.clientId;
 	});
 
 	socket.on('roomUpdate', function(data){
@@ -40,10 +48,6 @@
 		}
 		showRooms();
 	})
-	
-	function createPlayer() {
-		player.name = document.getElementById('name').value;
-	}
 
 	function addRoom() {
 		socket.emit('clientaddRoom', player);
@@ -53,14 +57,21 @@
 	function joinRoom(roomid) {
 		socket.emit('clientjoinRoom', {player,roomid} );
 	}
+	
+	function leaveRoom(roomid) {
+		socket.emit('clientleaveRoom', {player,roomid} );
+	}
+	
+	function checkRooms() {
+		socket.emit('checkRooms', {player} );
+	}
 
   </script>
  <body>
 	<div id="hello">Hello world</div>
-	<input id="name" type="text" name="name" value="" placeholder="Enter your name!">
-	<button onclick="createPlayer();">Create Player</button>
-	<button onclick="test();" >Send Message</button>
+	<div id="sample"></div>
 	<button onclick="addRoom();">Add Room</button>
+	<button onclick="checkRooms();">Check Rooms</button>
 	<table id="rooms">Rooms</table>
 </body>
 </html>

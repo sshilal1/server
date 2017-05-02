@@ -13,34 +13,25 @@ var Room = function(roomno,client) {
     this.members = new Array();
     this.members.push(client);
 };
+function randomString(length) {
+	return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
+}
 
 var roomno = 1;
 var rooms = new Array();
 
 io.on('connection', function(socket){
-	console.log('A user: '+ socket.client.id +' connected');
 	var clientId = socket.client.id;
-	socket.emit('initClient', { clientId });
+	var clientName = randomString(5);
+	console.log('A user: '+ socket.client.id +' connected, name=' + clientName);
+	
+	socket.emit('initClient', { clientId,clientName });
 	io.sockets.emit('roomUpdate', { rooms });
 	
   //Whenever someone disconnects this piece of code executed
 	socket.on('disconnect', function () {
 		console.log('A user "'+ socket.client.id +'"" disconnected');
-		for (i=0;i<rooms.length;i++) {
-			if (rooms[i].hostid == socket.client.id) {
-				rooms.splice(i,1);
-			}
-			else {
-				for (j=0;j<rooms[i].members.length;j++) {
-					console.log(rooms[i].members[j].id);
-					if (rooms[i].members[j].id == socket.client.id) {
-						rooms[i].members.splice(j,1);
-					}
-				}
-			}
-		}
-		console.log(io.nsps['/'].adapter.rooms);
-		io.sockets.emit('roomUpdate', { rooms });
+		//io.sockets.emit('roomUpdate', { rooms });
 	});
 
 	socket.on('clientaddRoom', function(data) {
@@ -70,6 +61,30 @@ io.on('connection', function(socket){
 		// send out new room status
 		console.log(io.nsps['/'].adapter.rooms);
 		io.sockets.emit('roomUpdate', { rooms });
+	});
+	
+	socket.on('clientleaveRoom', function(data) {
+		// leave the room array
+		console.log('client ' + data.player.name + ' is leaving room ' + data.roomid);
+		for (i=0;i<rooms.length;i++) {
+			for (j=0;j<rooms[i].members.length;j++) {
+				console.log('index for '+ rooms[i].members[j].name + ' =' + j);
+				if (rooms[i].members[j].name == data.player.name) {
+					rooms[i].members.splice(j, 1);
+				}
+			}
+		}
+		
+		// leave the actual room
+		socket.leave("room-"+data.roomid);
+		
+		// send out new room status
+		console.log(io.nsps['/'].adapter.rooms);
+		io.sockets.emit('roomUpdate', { rooms });
+	});
+	
+	socket.on('checkRooms', function(data) {
+		console.log(io.nsps['/'].adapter.rooms);
 	});
 
   // ### ROOMS
