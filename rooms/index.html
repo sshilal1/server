@@ -17,7 +17,6 @@
 			var memberNames = [];
 			for (player of rooms[i].members) {
 				memberNames += player.name;
-				console.log(player);
 			}
 			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
 			'|</td><td>Host: ' + JSON.stringify(rooms[i].hostname) + 
@@ -46,17 +45,12 @@
 		player.name = document.getElementById('name').value;
 	}
 
-	function test() {
-		socket.emit('clientTestEvent', 'We are sending an event from the client!');
-	}
-
 	function addRoom() {
 		socket.emit('clientaddRoom', player);
 		// when i add room, player only has id=clinetid and name=nameFromCreatePLayer
 	}
 	
 	function joinRoom(roomid) {
-		console.log(player,roomid);
 		socket.emit('clientjoinRoom', {player,roomid} );
 	}
 

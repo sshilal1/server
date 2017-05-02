@@ -3,73 +3,72 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 app.get('/', function(req, res){
-  res.sendfile('index.html');
+	res.sendfile('index.html');
 });
 
-var Room = function(host,clientId) {
-    this.hostname = host.name;
-    this.hostid = clientId;
+var Room = function(roomno,client) {
+    this.hostname = client.name;
+    this.hostid = client.id;
     this.number = roomno;
     this.members = new Array();
-    this.members.push(host);
+    this.members.push(client);
 };
 
-var clients = 0;
 var roomno = 1;
 var rooms = new Array();
-// Whenever someone connects this gets executed
-// Using defualt namespace
+
 io.on('connection', function(socket){
-  console.log('A user: '+ socket.client.id +' connected');
-  var clientId = socket.client.id;
-  socket.emit('initClient', { clientId });
-  io.sockets.emit('roomUpdate', { rooms });
-  console.log(io.nsps['/'].adapter.rooms);
-  clients++;
+	console.log('A user: '+ socket.client.id +' connected');
+	var clientId = socket.client.id;
+	socket.emit('initClient', { clientId });
+	io.sockets.emit('roomUpdate', { rooms });
 	
   //Whenever someone disconnects this piece of code executed
-  socket.on('disconnect', function () {
-    console.log('A user "'+ socket.client.id +'"" disconnected');
-    for (i=0;i<rooms.length;i++) {
-      if (rooms[i].hostid == socket.client.id) {
-        rooms.splice(i,1);
-      }
-      else {
-        for (j=0;j<rooms[i].members.length;j++) {
-          console.log(rooms[i].members[j].id);
-          if (rooms[i].members[j].id == socket.client.id) {
-            rooms[i].members.splice(j,1);
-          }
-        }
-      }
-    }
-    console.log(io.nsps['/'].adapter.rooms);
-    io.sockets.emit('roomUpdate', { rooms });
-  });
+	socket.on('disconnect', function () {
+		console.log('A user "'+ socket.client.id +'"" disconnected');
+		for (i=0;i<rooms.length;i++) {
+			if (rooms[i].hostid == socket.client.id) {
+				rooms.splice(i,1);
+			}
+			else {
+				for (j=0;j<rooms[i].members.length;j++) {
+					console.log(rooms[i].members[j].id);
+					if (rooms[i].members[j].id == socket.client.id) {
+						rooms[i].members.splice(j,1);
+					}
+				}
+			}
+		}
+		console.log(io.nsps['/'].adapter.rooms);
+		io.sockets.emit('roomUpdate', { rooms });
+	});
 
-  socket.on('clientaddRoom', function(data) {
-
-    console.log(data.name + ' created a room');
-    var newRoom = new Room(data,socket.client.id);   
-		socket.join("room-"+newRoom.number);
-    
-    console.log(io.nsps['/'].adapter.rooms);
+	socket.on('clientaddRoom', function(data) {
+		// create the new room
+		console.log(data.name + ' created room ' + roomno);
+		var newRoom = new Room(roomno,data);
 		
+		// update local rooms array
 		rooms.push(newRoom);
-    io.sockets.emit('roomUpdate', { rooms });
+		
+		// join the room
+		socket.join("room-" + roomno);
+
+		// send out new room status and iterate roomno
+		io.sockets.emit('roomUpdate', { rooms });
 		roomno++;
-  });
+	});
 	
 	socket.on('clientjoinRoom', function(data) {
-		console.log(data);
-		console.log(data.player.id + ' wants to join room ' + data.roomid);
+		// join the room array
+		console.log(data.player.name + ' wants to join room ' + data.roomid);
 		rooms[data.roomid-1].members.push(data.player);
-    for (member of rooms[data.roomid-1].members) {
-      console.log(member.id);
-    }
+		
+		// join the actual room
 		socket.join("room-"+data.roomid);
-    console.log(io.nsps['/'].adapter.rooms);
-
+		
+		// send out new room status
+		console.log(io.nsps['/'].adapter.rooms);
 		io.sockets.emit('roomUpdate', { rooms });
 	});
 
@@ -88,5 +87,5 @@ io.on('connection', function(socket){
 });
 
 http.listen(3000, function(){
-  console.log('listening on *:3000');
+	console.log('listening on *:3000');
 });
