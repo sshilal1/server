@@ -7,14 +7,36 @@ app.get('/', function(req, res){
 });
 
 var Room = function(roomno,client) {
+	this.number = roomno;
     this.hostname = client.name;
     this.hostid = client.id;
-    this.number = roomno;
     this.members = new Array();
     this.members.push(client);
 };
+
 function randomString(length) {
 	return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
+}
+
+function s_leaveRoom(clientId) {
+	for (i=0;i<rooms.length;i++) {
+		for (j=0;j<rooms[i].members.length;j++) {
+			if (rooms[i].members[j].id == clientId) {
+				rooms[i].members.splice(j, 1);
+			}
+		}
+		// if host, set new host, or delete room if nobody left
+		if (rooms[i].hostid == clientId) {
+			if (rooms[i].members.length < 1) {
+				rooms.splice(i,1);
+				roomno--;
+			}
+			else {
+				rooms[i].hostname = rooms[i].members[0].name;
+				rooms[i].hostid = rooms[i].members[0].id;
+			}
+		}
+	}
 }
 
 var roomno = 1;
@@ -31,7 +53,11 @@ io.on('connection', function(socket){
   //Whenever someone disconnects this piece of code executed
 	socket.on('disconnect', function () {
 		console.log('A user "'+ socket.client.id +'"" disconnected');
-		//io.sockets.emit('roomUpdate', { rooms });
+		
+		// leave the array
+		s_leaveRoom(socket.client.id);
+		
+		io.sockets.emit('roomUpdate', { rooms });
 	});
 
 	socket.on('clientaddRoom', function(data) {
@@ -65,28 +91,10 @@ io.on('connection', function(socket){
 	
 	socket.on('clientleaveRoom', function(data) {
 		// leave the room array
-		console.log('client ' + data.player.name + ' is leaving room ' + data.roomid);
-		for (i=0;i<rooms.length;i++) {
-			for (j=0;j<rooms[i].members.length;j++) {
-				console.log('index for '+ rooms[i].members[j].name + ' =' + j);
-				if (rooms[i].members[j].name == data.player.name) {
-					rooms[i].members.splice(j, 1);
-				}
-			}
-			// if host, set new host, or delete room if nobody left
-			if (rooms[i].hostname == data.player.name) {
-				if (rooms[i].members.length < 1) {
-					rooms.splice(i,1);
-					roomno--;
-				}
-				else {
-					rooms[i].hostname = rooms[i].members[0].name;
-					rooms[i].hostid = rooms[i].members[0].id;
-				}
-			}
-		}
+		console.log('client ' + data.player.id + ' is leaving room ' + data.roomid);
+		s_leaveRoom(data.player.id);
 		
-		// leave the actual room
+		// leave the socket room
 		socket.leave("room-"+data.roomid);
 		
 		// send out new room status
