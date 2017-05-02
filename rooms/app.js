@@ -73,6 +73,17 @@ io.on('connection', function(socket){
 					rooms[i].members.splice(j, 1);
 				}
 			}
+			// if host, set new host, or delete room if nobody left
+			if (rooms[i].hostname == data.player.name) {
+				if (rooms[i].members.length < 1) {
+					rooms.splice(i,1);
+					roomno--;
+				}
+				else {
+					rooms[i].hostname = rooms[i].members[0].name;
+					rooms[i].hostid = rooms[i].members[0].id;
+				}
+			}
 		}
 		
 		// leave the actual room
