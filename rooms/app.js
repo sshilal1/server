@@ -18,6 +18,18 @@ function randomString(length) {
 	return Math.round((Math.pow(36, length + 1) - Math.random() * Math.pow(36, length))).toString(36).slice(1);
 }
 
+function printCurrentRooms() {
+	console.log("--Current Rooms--");
+	for (room of rooms){
+		console.log(room.number + ":Host:" + room.hostname);
+		var str = '  Members:';
+		for(m=0;m<room.members.length;m++) {
+			str += ' ' + room.members[m].name;
+		}
+		console.log(str);
+	}
+}
+
 function s_leaveRoom(clientId) {
 	for (i=0;i<rooms.length;i++) {
 		for (j=0;j<rooms[i].members.length;j++) {
@@ -120,6 +132,9 @@ io.on('connection', function(socket){
 
 });
 
+setInterval(printCurrentRooms, 4000);
+
 http.listen(3000, function(){
 	console.log('listening on *:3000');
 });
+
