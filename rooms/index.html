@@ -14,22 +14,24 @@
 	
 	function showRooms() {
 		for (i=0;i<rooms.length;i++) {
-			var memberNames = [];
-			for (person of rooms[i].members) {
-				memberNames += person.name + "|";
-			}
-			var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
-			'|</td><td>Host: ' + JSON.stringify(rooms[i].hostname) + 
-			'|</td><td>Members: ' + memberNames;
+			if (rooms[i] != null) {
+				var memberNames = [];
+				for (person of rooms[i].members) {
+					memberNames += person.name + "|";
+				}
+				var str = '<tr style="outline: thin solid"><td>Room ' + rooms[i].number + 
+				'|</td><td>Host: ' + JSON.stringify(rooms[i].hostname) + 
+				'|</td><td>Members: ' + memberNames;
 
-			if (JSON.stringify(rooms[i].members).includes(player.name)) {
-				str += '|</td><td><button onclick="leaveRoom('+ rooms[i].number +');">Leave Game</button></td></tr>';
+				if (JSON.stringify(rooms[i].members).includes(player.name)) {
+					str += '|</td><td><button onclick="leaveRoom('+ rooms[i].number +');">Leave Game</button></td></tr>';
+				}
+				else {
+					str += '|</td><td><button onclick="joinRoom('+ rooms[i].number +');">Join Game</button></td></tr>';
+				}
+				console.log(str);
+				$("#rooms").append(str);
 			}
-			else {
-				str += '|</td><td><button onclick="joinRoom('+ rooms[i].number +');">Join Game</button></td></tr>';
-			}
-			console.log(str);
-			$("#rooms").append(str);
 		}
 	}
 	

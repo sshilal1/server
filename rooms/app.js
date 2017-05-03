@@ -21,31 +21,34 @@ function randomString(length) {
 function printCurrentRooms() {
 	console.log("--Current Rooms--");
 	for (room of rooms){
-		console.log(room.number + ":Host:" + room.hostname);
-		var str = '  Members:';
-		for(m=0;m<room.members.length;m++) {
-			str += ' ' + room.members[m].name;
+		if (room != null) {
+			console.log(room.number + ":Host:" + room.hostname);
+			var str = '  Members:';
+			for(m=0;m<room.members.length;m++) {
+				str += ' ' + room.members[m].name;
+			}
+			console.log(str);
 		}
-		console.log(str);
 	}
 }
 
 function s_leaveRoom(clientId) {
 	for (i=0;i<rooms.length;i++) {
-		for (j=0;j<rooms[i].members.length;j++) {
-			if (rooms[i].members[j].id == clientId) {
-				rooms[i].members.splice(j, 1);
+		if (rooms[i] != null) {
+			for (j=0;j<rooms[i].members.length;j++) {
+				if (rooms[i].members[j].id == clientId) {
+					rooms[i].members.splice(j, 1);
+				}
 			}
-		}
-		// if host, set new host, or delete room if nobody left
-		if (rooms[i].hostid == clientId) {
-			if (rooms[i].members.length < 1) {
-				rooms.splice(i,1);
-				roomno--;
-			}
-			else {
-				rooms[i].hostname = rooms[i].members[0].name;
-				rooms[i].hostid = rooms[i].members[0].id;
+			// if host, set new host, or delete room if nobody left
+			if (rooms[i].hostid == clientId) {
+				if (rooms[i].members.length < 1) {
+					rooms[i] = null;
+				}
+				else {
+					rooms[i].hostname = rooms[i].members[0].name;
+					rooms[i].hostid = rooms[i].members[0].id;
+				}
 			}
 		}
 	}
