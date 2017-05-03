@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Hello world</title></head>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script>
+	
+	var games = new Array();
+	var myId = Math.floor(Math.random() * 100) + 1;
+	console.log("myId="+myId);
+	
+	var socket = io();
+	socket.on('gamesList', function(data) {
+		games = [];
+		console.log(data);
+		for (i=0;i<data.games.length;i++) {
+			games.push(data.games[i]);
+		}
+		showGames();
+	});
+
+	socket.on('connectToRoom',function(data){
+		document.getElementById("sample").innerHTML = '';
+		document.getElementById("sample").innerHTML = data;
+	});
+	
+	function createGame() {
+
+		var currentGame = '/game'+ (games.length+1);
+		
+		socket.emit('clientCreateGame', {id:myId});
+		socket = io(currentGame);
+	  socket.on('hi',function(data){
+			document.getElementById("sample").innerHTML = '';
+			document.getElementById("sample").innerHTML = data;
+	  });
+	}
+	
+	function joinGame(gameid) {
+		socket.emit('clientJoinGame', {myId,gameid});
+		var gameToJoin = '/game'+ gameid;
+		socket = io(gameToJoin);
+	  socket.on('hi',function(data){
+			document.getElementById("sample").innerHTML = '';
+			document.getElementById("sample").innerHTML = data;
+	  });
+	}
+	
+	function leaveGame(gameid) {
+		socket = io('/');
+		socket.emit('clientLeaveGame', {myId,gameid});
+	}
+	
+	function showGames() {
+		$("#games").html('');
+		for (i=0;i<games.length;i++) {
+			var str = '<tr style="outline: thin solid"><td>Game ' + games[i].id + 
+			'|</td><td>Host: ' + JSON.stringify(games[i].host) + 
+			'|</td><td>Members: ' + JSON.stringify(games[i].members);
+			
+			if (games[i].members.includes(myId)) {
+				str += '|</td><td><button onclick="leaveGame('+ games[i].id +');">Leave Game</button></td></tr>';
+			}
+			else {
+				str += '|</td><td><button onclick="joinGame('+ games[i].id +');">Join Game</button></td></tr>';
+			}	
+			console.log(str);
+			$("#games").append(str);
+		}
+	}
+
+  </script>
+ <body>
+  	<div id="hello">Hello world</div>
+  	<div id="sample"></div>
+	<button onclick="createGame();">Make Game</button>
+	<table id="games">Rooms</table>
+</body>
+</html>
